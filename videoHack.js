@@ -18,7 +18,7 @@ var vHack = function() {
 	this.vendorCommonName = 'watchseries';
 	this.vendorSeriesListPath = 'serie';
 	this.vendorEpisodeListPath = 'episode';
-	this.vendorOpenPath = 'cale.html';
+	this.vendorOpenPath = 'open';
 
 
 	this.targets = {
@@ -162,11 +162,14 @@ var vHack = function() {
 	this.initthevideo = function() {
 		//this.consoleWrite('STILL WORKING ON THIS SITE... will be done shortly', '<span>try another link</span>');
 		//return false;
-		if($('#veriform').length > 0 || $('form[data-role=stream-verification-form]').length > 0) {
-			$('form').submit();
+		if($('#veriform').length > 0 || ($('form[data-role=stream-verification-form]').length > 0 && $("button[name=imhuman]").length > 0)) {
+			$("button[name=imhuman]").click();
 		} else {
 			if(typeof _playerconfig != 'undefined' && typeof _playerconfig.playlist != 'undefined' && typeof _playerconfig.playlist[0].sources != 'undefined') {
-				var str = _playerconfig.playlist[0].sources[1].file;
+				var str = "";
+				if(typeof _playerconfig.playlist[0].sources[1] == "undefined") {
+					 str = _playerconfig.playlist[0].sources[0].file;
+				} else { str = _playerconfig.playlist[0].sources[1].file; }
 				if(!!str) {
 					window.location = str;
 				}
@@ -180,7 +183,7 @@ var vHack = function() {
 
 
 	this.initEpisodePageButtonClick = function() {
-		var loc = $('.push_button').attr('href');
+		var loc = $('.action-btn').attr('href');
 		if(!!loc) {
 			window.location = loc;
 		}
@@ -247,7 +250,7 @@ var vHack = function() {
 
 
 	this.getVendorEpisodeTable = function() {
-		var tblList = $('table#myTable');
+		var tblList = $(this.findVendorEpisodeTable());
 		if(tblList.length < 1) {
 			this.displayError('Cannot find episode source list');
 		}
@@ -278,7 +281,29 @@ var vHack = function() {
 	};
 
 
-
+	this.findVendorEpisodeTable = function() {
+		var tbls = $('table');
+		var posTbls = [];
+		for(var i = 0; i < tbls.length; i++) {
+			var trs = $(tbls[i]).find("tr");
+			if(trs.length > 10) {
+				posTbls.push({ table:tbls[i], numTrs:trs.length });
+			}
+		}
+		if(posTbls.length > 1) {
+			var highTable = { table:null, numTrs:0 };
+			for(var i = 0; i < posTbls.length; i++) {
+				if(posTbls[i].numTrs > highTable.numTrs) {
+					highTable = posTbls[i];
+				}
+			}
+			return highTable.table;
+		}
+		return typeof posTbls[0] == "undefined" ? $("table") : posTbls[0].table;
+	};
+	
+	
+	
 	this.displayError = function(msg) {
 		var t = 'Hack user, something fucked up';
 		var m = '<span style="color:red">'+msg+'</span>';
